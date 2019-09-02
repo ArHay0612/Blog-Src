@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png?v=5.1.4">
+
+
+
+
+
+
+  <meta name="keywords" content="nginx,rtmp,rtsp,ffmpeg,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="RTSP、RTMP、HTTP协议比较共同点1.都是用在应用层的协议 2.理论上这三种协议都可以做直播和点播，但直播一般用RTSP和RTMP点播用HTTP 不同点1.HTTP协议（HyperText Transfer Protocol，超文本传输协议)，是因特网上应用最为广泛的一种网络传输协议，所有的WWW文件都必须遵守这个标准,HTTP是一个基于TCP/IP通信协议来传递数据(HTML 文件, 图">
+<meta name="keywords" content="nginx,rtmp,rtsp,ffmpeg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="nginx-rtmp-module-ffmpeg视频推流和rtsp转rtmp及hls">
+<meta property="og:url" content="http://ArHay0612.github.io/2019/05/31/nginx-rtmp-module-ffmpeg视频推流和rtsp转rtmp及hls/index.html">
+<meta property="og:site_name" content="ArHay">
+<meta property="og:description" content="RTSP、RTMP、HTTP协议比较共同点1.都是用在应用层的协议 2.理论上这三种协议都可以做直播和点播，但直播一般用RTSP和RTMP点播用HTTP 不同点1.HTTP协议（HyperText Transfer Protocol，超文本传输协议)，是因特网上应用最为广泛的一种网络传输协议，所有的WWW文件都必须遵守这个标准,HTTP是一个基于TCP/IP通信协议来传递数据(HTML 文件, 图">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://arhay0612.github.io/images/rtmp-result.png">
+<meta property="og:image" content="http://arhay0612.github.io/images/hls-result.png">
+<meta property="og:image" content="http://arhay0612.github.io/images/push_to_rtsp.png">
+<meta property="og:image" content="http://arhay0612.github.io/images/push_to_rtmp.png">
+<meta property="og:image" content="http://arhay0612.github.io/images/rtsp_to_rtsp.png">
+<meta property="og:image" content="http://arhay0612.github.io/images/build_push_rtsp.jpg">
+<meta property="og:updated_time" content="2019-09-02T07:37:22.921Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="nginx-rtmp-module-ffmpeg视频推流和rtsp转rtmp及hls">
+<meta name="twitter:description" content="RTSP、RTMP、HTTP协议比较共同点1.都是用在应用层的协议 2.理论上这三种协议都可以做直播和点播，但直播一般用RTSP和RTMP点播用HTTP 不同点1.HTTP协议（HyperText Transfer Protocol，超文本传输协议)，是因特网上应用最为广泛的一种网络传输协议，所有的WWW文件都必须遵守这个标准,HTTP是一个基于TCP/IP通信协议来传递数据(HTML 文件, 图">
+<meta name="twitter:image" content="http://arhay0612.github.io/images/rtmp-result.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":true,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://ArHay0612.github.io/2019/05/31/nginx-rtmp-module-ffmpeg视频推流和rtsp转rtmp及hls/">
+
+
+
+
+
+  <title>nginx-rtmp-module-ffmpeg视频推流和rtsp转rtmp及hls | ArHay</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ArHay</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">当……赤道留住雪花……眼泪融掉细沙……</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<div style="padding-left: 2rem; margin: 0.5rem auto;">
+  <iframe width="384" scrolling="no" height="60" frameborder="0" allowtransparency="true" src="//i.tianqi.com/index.php?c=code&id=12&color=%23002060&bgc=%23FFFFFF&bdc=%23&icon=1&num=1&site=12">
+ </iframe>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://ArHay0612.github.io/2019/05/31/nginx-rtmp-module-ffmpeg视频推流和rtsp转rtmp及hls/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ArHay">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/avatar/avator.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ArHay">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">nginx-rtmp-module-ffmpeg视频推流和rtsp转rtmp及hls</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-31T16:53:11+08:00">
+                2019-05-31
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2019-09-02T15:37:22+08:00">
+                2019-09-02
+              </time>
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i> 阅读数
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>次
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1.9k 字
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  7 分钟
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="RTSP、RTMP、HTTP协议比较"><a href="#RTSP、RTMP、HTTP协议比较" class="headerlink" title="RTSP、RTMP、HTTP协议比较"></a>RTSP、RTMP、HTTP协议比较</h3><h4 id="共同点"><a href="#共同点" class="headerlink" title="共同点"></a>共同点</h4><p>1.都是用在应用层的协议</p>
+<p>2.理论上这三种协议都可以做直播和点播，但直播一般用RTSP和RTMP点播用HTTP</p>
+<h4 id="不同点"><a href="#不同点" class="headerlink" title="不同点"></a>不同点</h4><p>1.HTTP协议（HyperText Transfer Protocol，超文本传输协议)，是因特网上应用最为广泛的一种网络传输协议，所有的WWW文件都必须遵守这个标准,HTTP是一个基于TCP/IP通信协议来传递数据(HTML 文件, 图片文件, 查询结果等).所以HTTP不是流媒体协议，RTMP和RTSP是流媒体协议</p>
+<p>2.RTMP是Real Time Messaging Protocol（实时消息传输协议）的首字母缩写。该协议基于TCP，是一个协议族，包括RTMP基本协议及RTMPT/RTMPS/RTMPE等多种变种。RTMP是一种设计用来进行实时数据通信的网络协议，主要用来在Flash/AIR平台和支持RTMP协议的流媒体/交互服务器之间进行音视频和数据通信,RTMP一般传输flv,f4v格式流.</p>
+<p>3.RTSP（Real Time Streaming Protocol），RFC2326，实时流传输协议.RTSP以客户端方式工作，对流媒体提供播放、暂停、后退、前进等操作.RTSP传输的一般是TS、MP4格式的流，其传输一般需要2~3个通道，命令和数据通道分离。使用RTSP协议传输流媒体数据需要有专门的媒体播放器和媒体服务器，也就是需要支持RTSP协议的客户端和服务器。</p>
+<h3 id="ffmpeg简介"><a href="#ffmpeg简介" class="headerlink" title="ffmpeg简介"></a>ffmpeg简介</h3><p>FFmpeg是一套可以用来记录、转换数字音频、视频，并能将其转化为流的开源计算机程序。它包括了目前领先的音/视频编码库libavcodec.可以轻易地实现多种视频格式之间的相互转换，例如可以将摄录下的视频avi等转成现在视频网站所采用的flv格式</p>
+<h3 id="nginx-nginx-rtmp-moudle安装"><a href="#nginx-nginx-rtmp-moudle安装" class="headerlink" title="nginx+nginx-rtmp-moudle安装"></a>nginx+nginx-rtmp-moudle安装</h3><p>分别下载nginx和nginx-rtmp的源码然后进行编译即可.在此,为了方便我是直接使用的docker的tiangolo/nginx-rtmp镜像,docker安装参考上一篇初识docker文档</p>
+<p><code>docker pull tiangolo/nginx-rtmp</code> // 拉取nginx-rtmp镜像</p>
+<p><code>docker run -it --name nginx-rtmp tiangolo/nginx-rtmp -p 1935:1935</code> // 第一次运行容器,取个别名,后续可直接使用 <code>docker start nginx-rtmp</code></p>
+<p>使用<code>netstat -tunlp | grep 1935</code> 检测1935端口是否正在监听,正常情况是正在监听中</p>
+<h3 id="ffmpeg安装"><a href="#ffmpeg安装" class="headerlink" title="ffmpeg安装"></a>ffmpeg安装</h3><p><code>sudo apt install ffmpeg</code> // 安装ffmpeg(我当前环境deepin,仓库里面自带ffmpeg包)</p>
+<p>其他操作系统需要去官网下载对应的安装包即可或者按照官方文档添加对应系统的ppa进行安装即可.</p>
+<p>ffmpeg参数:</p>
+<p>-re : 表示使用文件的原始帧率进行读取，因为ffmpeg读取视频帧的速度很快，如果不使用这个参数，ffmpeg可以在很短时间就把video.mp4中的视频帧全部读取完并进行推流，这样就无法体现出视频播放的效果了</p>
+<p>-i :这个参数表示输入 ，后面跟的路劲文件就是输入文件。</p>
+<p>-vcodec copy : -vcodec表示使用的视频编解码器 ，前缀v表示video。后面紧跟的copy 表示复制使用源文件的视频编解码器，比如原文件的编解码器(codec)是h264，则这里就使用h264</p>
+<p>-acodec copy : -acodec表示使用的音频编解码器，前缀a表示audio。后面的copy 表示使用源文件的音频编解码器</p>
+<p>-b:v 800k : -b:v表示视频的比特率(bitrate) ，为800k</p>
+<p>-b:a 32k : 表示音频的比特率为32k</p>
+<p>-f flv : -f表示format ，就是强制输出格式为flv，这一步其实也叫封装(mux)，封装要做的事就是把视频和音频混合在一起，进行同步。紧跟在后面的rtmp://xxx.xxx.xxx/xxx 表示输出的”文件名”，这个文件名可以是一个本地的文件，也可以指定为rtmp流媒体地址。指定为rtmp流媒体地址后，则ffmpeg就可以进行推流</p>
+<h3 id="ffmpeg将rtsp转码为rtmp"><a href="#ffmpeg将rtsp转码为rtmp" class="headerlink" title="ffmpeg将rtsp转码为rtmp"></a>ffmpeg将rtsp转码为rtmp</h3><p>使用ffmpeg命令,将rtsp转码为rtmp.ffmpeg参数项很多,未对其深究,直接参考网友的命令的.-i后面是rtsp流地址.</p>
+<p><code>ffmpeg -re -rtsp_transport tcp -i &quot;rtsp://184.72.239.149/vod/mp4://BigBuckBunny_175k.mov&quot; -f flv -vcodec libx264 -vprofile baseline -acodec aac -ar 44100 -strict -2 -ac 1 -f flv -r 10 -s 1280x720 -q 10 &quot;rtmp://127.0.0.1:1935/live/demo&quot;</code></p>
+<pre><code>在执行转码命令过程中,可能会报信息类似 Past duration 0.999992 too large 的警告错误,经查询资料,是在-r参数后面
+指定的视频帧率参数导致的.rtsp://184.72.239.149/vod/mp4://BigBuckBunny_175k.mov这个地址是网络上的地址,
+可使用vlc media player查看源的帧率而设置
+</code></pre><h4 id="使用VLC-media-player测试播放转换后的rtmp地址"><a href="#使用VLC-media-player测试播放转换后的rtmp地址" class="headerlink" title="使用VLC media player测试播放转换后的rtmp地址"></a>使用VLC media player测试播放转换后的rtmp地址</h4><p>打开VLC media player播放器.在工具栏”媒体-&gt;打开网络串流”然后输入rtmp://127.0.0.1:1935/live/demo点击确定即可进行直播预览转换后的rtmp视频流</p>
+<p><img src="/images/rtmp-result.png" alt></p>
+<h3 id="ffmpeg将rtsp转码为hls"><a href="#ffmpeg将rtsp转码为hls" class="headerlink" title="ffmpeg将rtsp转码为hls"></a>ffmpeg将rtsp转码为hls</h3><p>使用ffmpeg命令,将rtsp转码为hls.ffmpeg参数项很多,未对其深究,直接参考网友的命令的.-i后面是rtsp流地址.</p>
+<p><code>ffmpeg -f rtsp -rtsp_transport tcp -i rtsp://192.168.100.2/longzhu/demo_2 -r 23 -f hls -hls_time 4 -hls_list_size 5 -hls_wrap 10 /home/bz/Desktop/h5live/longzhuchao.m3u8</code></p>
+<pre><code>在执行转码命令过程中,可能会报信息类似 Past duration 0.999992 too large 的警告错误,经查询资料,是在-r参数后面
+指定的视频帧率参数导致的.rtsp://184.72.239.149/vod/mp4://BigBuckBunny_175k.mov这个地址是网络上的地址,
+可使用vlc media player查看源的帧率而设置
+</code></pre><h4 id="使用VLC-media-player测试播放转换后的hls地址-m3u8文件"><a href="#使用VLC-media-player测试播放转换后的hls地址-m3u8文件" class="headerlink" title="使用VLC media player测试播放转换后的hls地址(m3u8文件)"></a>使用VLC media player测试播放转换后的hls地址(m3u8文件)</h4><p>打开VLC media player播放器.在工具栏”媒体-&gt;打开网络串流”然后输入<a href="http://192.168.100.31/hlsvideo/longzhuchao.m3u8点击确定即可进行直播预览转换后的rtmp视频流,该地址是在nginx中配置了的" target="_blank" rel="noopener">http://192.168.100.31/hlsvideo/longzhuchao.m3u8点击确定即可进行直播预览转换后的rtmp视频流,该地址是在nginx中配置了的</a></p>
+<p><img src="/images/hls-result.png" alt></p>
+<h3 id="ffmpeg推送视频文件到rtsp服务器"><a href="#ffmpeg推送视频文件到rtsp服务器" class="headerlink" title="ffmpeg推送视频文件到rtsp服务器"></a>ffmpeg推送视频文件到rtsp服务器</h3><p><code>ffmpeg -re -i ./龙珠超.布罗利.mp4 -vcodec copy -codec copy -f rtsp rtsp://192.168.252.1/longzhu/demo_2</code></p>
+<pre><code>注:使用了easydarwin,rtsp://192.168.252.1地址就是启动easydarwin成功后的rtsp server地址
+</code></pre><h4 id="使用VLC-media-player测试播放推流后rtsp地址"><a href="#使用VLC-media-player测试播放推流后rtsp地址" class="headerlink" title="使用VLC media player测试播放推流后rtsp地址"></a>使用VLC media player测试播放推流后rtsp地址</h4><p><img src="/images/push_to_rtsp.png" alt></p>
+<h3 id="ffmpeg推送视频文件到rtmp服务器"><a href="#ffmpeg推送视频文件到rtmp服务器" class="headerlink" title="ffmpeg推送视频文件到rtmp服务器"></a>ffmpeg推送视频文件到rtmp服务器</h3><p><code>ffmpeg -re -i ./龙珠超.布罗利.mp4 -vcodec copy -acodec copy -b:v 800k -b:a 32k -f flv rtmp://192.168.100.31:1935/rtmplive_demo/demo_3</code></p>
+<pre><code>注:rtmp地址中的rtmplive_demo必须和nginx中配置的application名称一致才能推流成功,192.168.100.31是我的一台虚拟机
+</code></pre><h4 id="使用VLC-media-player测试播放推流后rtmp地址"><a href="#使用VLC-media-player测试播放推流后rtmp地址" class="headerlink" title="使用VLC media player测试播放推流后rtmp地址"></a>使用VLC media player测试播放推流后rtmp地址</h4><p><img src="/images/push_to_rtmp.png" alt></p>
+<h3 id="ffmpeg转发rtsp流"><a href="#ffmpeg转发rtsp流" class="headerlink" title="ffmpeg转发rtsp流"></a>ffmpeg转发rtsp流</h3><p><code>ffmpeg -i rtsp://192.168.100.2:8554/longzhu/live -codec copy -f rtsp rtsp://192.168.252.1/longzhu/demo_1</code></p>
+<pre><code>第一个rtsp是源地址,第二个是新地址.但是必须保证新地址是能够支持rtsp协议的才行.我试过使用nginx+rtsp是不能够
+成功的.所以换成了easydarwin,rtsp://192.168.252.1地址就是启动easydarwin成功后的rtsp server地址.
+</code></pre><p>效果图如下:</p>
+<p><img src="/images/rtsp_to_rtsp.png" alt></p>
+<p><strong>注:关于测试rtsp地址问题,上面的地址我测试的时候能够使用,但是不能保证以后能够一直正常使用,所以有网友图文讲解了使用VLC media player自制rtsp流.小伙伴的力量强大!其地址如下:<a href="https://blog.csdn.net/taoerit/article/details/51920018" target="_blank" rel="noopener">https://blog.csdn.net/taoerit/article/details/51920018</a><br>为了防止地址失效,我将页面截了一张完整图.图片如下:</strong></p>
+<p><img src="/images/build_push_rtsp.jpg" alt></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/nginx/" rel="tag"># nginx</a>
+          
+            <a href="/tags/rtmp/" rel="tag"># rtmp</a>
+          
+            <a href="/tags/rtsp/" rel="tag"># rtsp</a>
+          
+            <a href="/tags/ffmpeg/" rel="tag"># ffmpeg</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/29/deepin-linux下初识docker/" rel="next" title="deepin linux下初识docker">
+                <i class="fa fa-chevron-left"></i> deepin linux下初识docker
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/01/编译安装nginx添加rtmp模块/" rel="prev" title="编译安装nginx添加rtmp模块">
+                编译安装nginx添加rtmp模块 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      
+  <script src="https://utteranc.es/client.js" repo="ArHay0612/ArHay0612.github.io" issue-term="title" theme="github-light" crossorigin="anonymous" async>
+  </script>
+
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/avatar/avator.jpg" alt="ArHay">
+            
+              <p class="site-author-name" itemprop="name">ArHay</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">27</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">25</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/ArHay0612" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="719510848@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#RTSP、RTMP、HTTP协议比较"><span class="nav-number">1.</span> <span class="nav-text">RTSP、RTMP、HTTP协议比较</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#共同点"><span class="nav-number">1.1.</span> <span class="nav-text">共同点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#不同点"><span class="nav-number">1.2.</span> <span class="nav-text">不同点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ffmpeg简介"><span class="nav-number">2.</span> <span class="nav-text">ffmpeg简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nginx-nginx-rtmp-moudle安装"><span class="nav-number">3.</span> <span class="nav-text">nginx+nginx-rtmp-moudle安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ffmpeg安装"><span class="nav-number">4.</span> <span class="nav-text">ffmpeg安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ffmpeg将rtsp转码为rtmp"><span class="nav-number">5.</span> <span class="nav-text">ffmpeg将rtsp转码为rtmp</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#使用VLC-media-player测试播放转换后的rtmp地址"><span class="nav-number">5.1.</span> <span class="nav-text">使用VLC media player测试播放转换后的rtmp地址</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ffmpeg将rtsp转码为hls"><span class="nav-number">6.</span> <span class="nav-text">ffmpeg将rtsp转码为hls</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#使用VLC-media-player测试播放转换后的hls地址-m3u8文件"><span class="nav-number">6.1.</span> <span class="nav-text">使用VLC media player测试播放转换后的hls地址(m3u8文件)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ffmpeg推送视频文件到rtsp服务器"><span class="nav-number">7.</span> <span class="nav-text">ffmpeg推送视频文件到rtsp服务器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#使用VLC-media-player测试播放推流后rtsp地址"><span class="nav-number">7.1.</span> <span class="nav-text">使用VLC media player测试播放推流后rtsp地址</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ffmpeg推送视频文件到rtmp服务器"><span class="nav-number">8.</span> <span class="nav-text">ffmpeg推送视频文件到rtmp服务器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#使用VLC-media-player测试播放推流后rtmp地址"><span class="nav-number">8.1.</span> <span class="nav-text">使用VLC media player测试播放推流后rtmp地址</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ffmpeg转发rtsp流"><span class="nav-number">9.</span> <span class="nav-text">ffmpeg转发rtsp流</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 &mdash; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-snowflake-o"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ArHay</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">22.5k</span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i> 访客数
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      人次
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i> 总访问量
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      次
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "./public/search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  <script type="text/javascript" src="/js/src/clicklove.js"></script>
+</body>
+</html>
